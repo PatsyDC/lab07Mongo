@@ -1,37 +1,72 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clientes</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-  </head>
-  <body>
+</head>
+<body>
     <div class="container">
+        <h2 class="mt-5 mb-4">Agregar Nuevo Cliente</h2>
+        <form action="/nuevo-cliente" method="POST">
+            <div class="mb-3">
+                <label for="dni" class="form-label">DNI:</label>
+                <input type="text" class="form-control" id="dni" name="dni" required>
+            </div>
+            <div class="mb-3">
+                <label for="fullName" class="form-label">Nombre Completo:</label>
+                <input type="text" class="form-control" id="fullName" name="fullName" required>
+            </div>
+            <div class="mb-3">
+                <label for="creditCard" class="form-label">Tarjeta de Crédito:</label>
+                <input type="text" class="form-control" id="creditCard" name="creditCard" required>
+            </div>
+            <div class="mb-3">
+                <label for="totalVuelos" class="form-label">Total de Vuelos:</label>
+                <input type="number" class="form-control" id="totalVuelos" name="totalVuelos" required>
+            </div>
+            <div class="mb-3">
+                <label for="totalAlojamiento" class="form-label">Total de Alojamiento:</label>
+                <input type="number" class="form-control" id="totalAlojamiento" name="totalAlojamiento" required>
+            </div>
+            <div class="mb-3">
+                <label for="totalTours" class="form-label">Total de Tours:</label>
+                <input type="number" class="form-control" id="totalTours" name="totalTours" required>
+            </div>
+            <div class="mb-3">
+                <label for="phoneNumber" class="form-label">Número de Teléfono:</label>
+                <input type="text" class="form-control" id="phoneNumber" name="phoneNumber" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Agregar Cliente</button>
+        </form>
+    </div>
+
+    <div class="container mt-5">
         <h1>Listado de Clientes</h1>
-        <ul>
+        <ul class="list-group">
             <% clientes.forEach(function(cliente) { %>
-                <li>
-                    <strong>DNI:</strong> <%= cliente.dni %><br>
-                    <strong>Nombre Completo:</strong> <%= cliente.fullName %><br>
-                    <strong>Tarjeta de Crédito:</strong> <%= cliente.creditCard %><br>
-                    <strong>Total de Vuelos:</strong> <%= cliente.totalVuelos %><br>
-                    <strong>Total de Alojamiento:</strong> <%= cliente.totalAlojamiento %><br>
-                    <strong>Total de Tours:</strong> <%= cliente.totalTours %><br>
-                    <strong>Número de Teléfono:</strong> <%= cliente.phoneNumber %><br>
-                    <form action="/editar-cliente" method="POST" style="display: inline;">
-                        <input type="hidden" name="clienteId" value="<%= cliente._id %>">
-                        <button type="submit">Editar</button>
-                    </form>
-                    <form action="/eliminar-cliente" method="POST" style="display: inline;">
-                        <input type="hidden" name="clienteId" value="<%= cliente._id %>">
-                        <button type="submit">Eliminar</button>
-                    </form>
-                </li>
+            <li class="list-group-item">
+                <strong>DNI:</strong> <%= cliente.dni %><br>
+                <strong>Nombre Completo:</strong> <%= cliente.fullName %><br>
+                <strong>Tarjeta de Crédito:</strong> <%= cliente.creditCard %><br>
+                <strong>Total de Vuelos:</strong> <%= cliente.totalVuelos %><br>
+                <strong>Total de Alojamiento:</strong> <%= cliente.totalAlojamiento %><br>
+                <strong>Total de Tours:</strong> <%= cliente.totalTours %><br>
+                <strong>Número de Teléfono:</strong> <%= cliente.phoneNumber %><br>
+                <form action="/editar-cliente" method="POST" style="display: inline;">
+                    <input type="hidden" name="clienteId" value="<%= cliente._id %>">
+                    <button type="submit" class="btn btn-warning me-2">Editar</button>
+                </form>
+                <form action="/eliminar-cliente" method="POST" style="display: inline;">
+                    <input type="hidden" name="clienteId" value="<%= cliente._id %>">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </li>
             <% }); %>
         </ul>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
-  </body>
+</body>
 </html>
