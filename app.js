@@ -32,10 +32,37 @@ const hotelSchema = new mongoose.Schema({
   price: Number
 });
 
+const tourSchema = new mongoose.Schema({
+    nameTour: String,
+});
+
 // Crear el modelo Hotel
 const Hotel = mongoose.model('Hotel', hotelSchema);
 
 const Cliente = mongoose.model('Cliente', hotelSchema);
+
+const Tour = mongoose.model('Tour', tourSchema);
+
+// Index
+app.get('/', (req, res) => {
+    res.render('index.ejs');
+});
+
+
+// Ruta para mostrar todos los hoteles
+app.get('/hoteles', (req, res) => {
+    // Encontrar todos los hoteles en la base de datos
+    Hotel.find()
+        .then((hoteles) => {
+            // Renderizar la vista 'hoteles.ejs' y pasar los datos de los hoteles como una variable
+            res.render('hoteles.ejs', { hoteles: hoteles });
+        })
+        .catch((error) => {
+            console.error('Error retrieving hotels:', error);
+            // Enviar un mensaje de error si ocurre un problema al recuperar los hoteles
+            res.send('Error retrieving hotels');
+        });
+});
 
 // Ruta para manejar la creación de un nuevo hotel
 app.post('/nuevo-hotel', (req, res) => {
@@ -64,7 +91,6 @@ app.post('/nuevo-hotel', (req, res) => {
         });
 });
 
-
 // Ruta para manejar la creación de un nuevo hotel
 app.post('/nuevo-cliente', (req, res) => {
   // Obtener los datos del formulario
@@ -86,29 +112,13 @@ app.post('/nuevo-cliente', (req, res) => {
       .then(() => {
           console.log('Nuevo cliente creado');
           // Redirigir al usuario a la página de hoteles después de crear el hotel
-          res.redirect('/cliente');
+          res.redirect('/clientes');
       })
       .catch((error) => {
           console.error('Error creando nuevo cliente:', error);
           // Enviar un mensaje de error al usuario si ocurre un problema al crear el hotel
           res.send('Error creando nuevo cliente');
       });
-});
-
-
-// Ruta para mostrar todos los hoteles
-app.get('/hoteles', (req, res) => {
-    // Encontrar todos los hoteles en la base de datos
-    Hotel.find()
-        .then((hoteles) => {
-            // Renderizar la vista 'hoteles.ejs' y pasar los datos de los hoteles como una variable
-            res.render('hoteles.ejs', { hoteles: hoteles });
-        })
-        .catch((error) => {
-            console.error('Error retrieving hotels:', error);
-            // Enviar un mensaje de error si ocurre un problema al recuperar los hoteles
-            res.send('Error retrieving hotels');
-        });
 });
 
 // Ruta para mostrar todos los clientes
@@ -155,8 +165,6 @@ app.post('/eliminar-hotel', (req, res) => {
       });
 });
 
-
-
 // Ruta para eliminar un cliente específico
 app.post('/eliminar-cliente', (req, res) => {
   const clienteId = req.body.clienteId;
@@ -172,7 +180,6 @@ app.post('/eliminar-cliente', (req, res) => {
       });
 });
 
-
 // Ruta para mostrar el formulario de edición de un hotel específico
 app.get('/hoteles/editar/:id', (req, res) => {
   const hotelId = req.params.id;
@@ -187,7 +194,6 @@ app.get('/hoteles/editar/:id', (req, res) => {
       });
 });
 
-
 // Ruta para mostrar el formulario de edición de un cliente específico
 app.get('/clientes/editar/:id', (req, res) => {
   const clienteId = req.params.id;
@@ -201,7 +207,6 @@ app.get('/clientes/editar/:id', (req, res) => {
           res.send('Error obteniendo cliente para edición');
       });
 });
-
 
 // Ruta para manejar la actualización de un hotel
 app.post('/actualizar-hotel', (req, res) => {
@@ -224,7 +229,6 @@ app.post('/actualizar-hotel', (req, res) => {
       res.send('Error actualizando hotel');
   });
 });
-
 
 // Ruta para manejar la actualización de un cliente
 app.post('/actualizar-cliente', (req, res) => {
@@ -252,30 +256,86 @@ app.post('/actualizar-cliente', (req, res) => {
   });
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//TOURRR
+// Ruta para manejar la creación de un nuevo tour
+app.post('/nuevo-tour', (req, res) => {
+    // Obtener los datos del formulario
+    const { nameTour } = req.body;
+    
+    // Crear un nuevo hotel utilizando el modelo Hotel
+    const newTour = new Tour({
+      nameTour: nameTour,
+    });
+  
+    // Guardar el nuevo hotel en la base de datos
+    newTour.save()
+        .then(() => {
+            console.log('Nuevo tour creado');
+            // Redirigir al usuario a la página de hoteles después de crear el hotel
+            res.redirect('/tour');
+        })
+        .catch((error) => {
+            console.error('Error creando nuevo tour:', error);
+            // Enviar un mensaje de error al usuario si ocurre un problema al crear el hotel
+            res.send('Error creando nuevo tour');
+        });
+  });
+  
+  // Ruta para mostrar todos los tour
+  app.get('/tour', (req, res) => {
+    // Encontrar todos los tours en la base de datos
+    Tour.find()
+        .then((tours) => {
+            // Renderizar la vista 'tour.ejs' y pasar los datos de los tours como una variable
+            res.render('tour.ejs', { tours: tours }); // Cambia 'tour' a 'tours'
+        })
+        .catch((error) => {
+            console.error('Error retrieving tour:', error);
+            // Enviar un mensaje de error si ocurre un problema al recuperar los tours
+            res.send('Error retrieving tour');
+        });
+  });
+  
+  //EDITAR TOUR
+  
+  app.post('/editar-tour', (req, res) => {
+    const hotelId = req.body.hotelId;
+    res.redirect(`/tour/editar/${tourId}`);
+  });
+  
+  app.get('/tour/editar/:id', (req, res) => {
+    const tourId = req.params.id;
+    // Aquí puedes encontrar el hotel por su ID en la base de datos y pasar los datos a la vista de edición de hoteles
+    Hotel.findById(tourId)
+        .then((tour) => {
+            res.render('tourEditar.ejs', { tour: tour });
+        })
+        .catch((error) => {
+            console.error('Error obteniendo hotel para edición:', error);
+            res.send('Error obteniendo hotel para edición');
+        });
+  });
+  
+  app.post('/actualizar-tour', (req, res) => {
+    const tourId = req.body.tourId;
+    const { name, address, rating, price } = req.body;
+    
+    // Encuentra el hotel por su ID y actualiza los campos
+    Hotel.findByIdAndUpdate(hotelId, {
+        name: name,
+        address: address,
+        rating: rating,
+        price: price
+    })
+    .then(() => {
+        console.log('Hotel actualizado');
+        res.redirect('/hoteles');
+    })
+    .catch((error) => {
+        console.error('Error actualizando hotel:', error);
+        res.send('Error actualizando hotel');
+    });
+  });
 
 
 
