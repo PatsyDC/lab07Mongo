@@ -42,11 +42,23 @@ const tourSchema = new mongoose.Schema({
     }
 });
 
-// Crear el modelo Hotel
+const vueloSchema = new mongoose.Schema({
+    origin_lat: Number,
+    origin_lng: Number,
+    destiny_lat: Number,
+    destiny_lng: Number,
+    price: Number,
+    origin_name: String,
+    destiny_name: String,
+    aero_line: String
+});
+
+//Modelos
 const Hotel = mongoose.model('Hotel', hotelSchema);
 
-
 const Tour = mongoose.model('Tour', tourSchema);
+
+const Vuelo = mongoose.model('Vuelo', vueloSchema);
 
 // Index
 app.get('/', (req, res) => {
@@ -327,12 +339,12 @@ app.post('/nuevo-tour', upload.single('image'), (req, res) => {
 
   //EDITAR TOUR
 
-  app.post('/editar-tour', (req, res) => {
+app.post('/editar-tour', (req, res) => {
     const hotelId = req.body.hotelId;
     res.redirect(`/tour/editar/${tourId}`);
-  });
-  
-  app.get('/tour/editar/:id', (req, res) => {
+});
+
+app.get('/tour/editar/:id', (req, res) => {
     const tourId = req.params.id;
     // Aquí puedes encontrar el hotel por su ID en la base de datos y pasar los datos a la vista de edición de hoteles
     Hotel.findById(tourId)
@@ -343,9 +355,9 @@ app.post('/nuevo-tour', upload.single('image'), (req, res) => {
             console.error('Error obteniendo hotel para edición:', error);
             res.send('Error obteniendo hotel para edición');
         });
-  });
-  
-  app.post('/actualizar-tour', (req, res) => {
+});
+
+app.post('/actualizar-tour', (req, res) => {
     const tourId = req.body.tourId;
     const { name, address, rating, price } = req.body;
     
@@ -364,9 +376,118 @@ app.post('/nuevo-tour', upload.single('image'), (req, res) => {
         console.error('Error actualizando hotel:', error);
         res.send('Error actualizando hotel');
     });
+});
+
+//                  PARTE DE MIGUEL                                 //
+//-----------------------------------------------------------------//
+
+// Ruta para manejar la creación de un nuevo vuelo
+app.post('/nuevo-vuelo', (req, res) => {
+    // Obtener los datos del formulario
+    const { origin_lat, origin_lng, destiny_lat, destiny_lng, price, origin_name, destiny_name, aero_line } = req.body;
+    
+    // Crear un nuevo vuelo utilizando el modelo Vuelo
+    const newVuelo = new Vuelo({
+        origin_lat: origin_lat,
+        origin_lng: origin_lng,
+        destiny_lat: destiny_lat,
+        destiny_lng: destiny_lng,
+        price: price,
+        origin_name: origin_name,
+        destiny_name: destiny_name,
+        aero_line: aero_line
+    });
+
+    // Guardar el nuevo vuelo en la base de datos
+    newVuelo.save()
+        .then(() => {
+            console.log('Nuevo vuelo creado');
+            // Redirigir al usuario a la página de vuelos después de crear el vuelo
+            res.redirect('/vuelos');
+        })
+        .catch((error) => {
+            console.error('Error creando nuevo vuelo:', error);
+            // Enviar un mensaje de error al usuario si ocurre un problema al crear el vuelo
+            res.send('Error creando nuevo vuelo');
+        });
+});
+
+// Ruta para mostrar todos los vuelos
+app.get('/vuelos', (req, res) => {
+    // Encontrar todos los vuelos en la base de datos
+    Vuelo.find()
+        .then((vuelos) => {
+            // Renderizar la vista 'vuelos.ejs' y pasar los datos de los vuelos como una variable
+            res.render('vuelos.ejs', { vuelos: vuelos });
+        })
+        .catch((error) => {
+            console.error('Error retrieving vuelos:', error);
+            // Enviar un mensaje de error si ocurre un problema al recuperar los vuelos
+            res.send('Error retrieving vuelos');
+        });
+});
+
+// Ruta para mostrar el formulario de edición de un vuelo específico
+app.post('/editar-vuelo', (req, res) => {
+    const vueloId = req.body.vueloId;
+  // Aquí puedes redirigir al usuario a la página de edición de vuelos y pasar el ID del vuelo como parámetro
+    res.redirect(`/vuelos/editar/${vueloId}`);
+});
+
+// Ruta para eliminar un vuelo específico
+app.post('/eliminar-vuelo', (req, res) => {
+  const vueloId = req.body.vueloId;
+  // Aquí puedes implementar la lógica para eliminar el vuelo de la base de datos utilizando el ID
+  Vuelo.findByIdAndDelete(vueloId)
+      .then(() => {
+          console.log('Vuelo eliminado');
+          res.redirect('/vuelos');
+      })
+      .catch((error) => {
+          console.error('Error eliminando vuelo:', error);
+          res.send('Error eliminando vuelo');
+      });
+});
+
+// Ruta para mostrar el formulario de edición de un vuelo específico
+app.get('/vuelos/editar/:id', (req, res) => {
+  const vueloId = req.params.id;
+  // Aquí puedes encontrar el vuelo por su ID en la base de datos y pasar los datos a la vista de edición de vuelos
+  Vuelo.findById(vueloId)
+      .then((vuelo) => {
+          res.render('vuelosEditar.ejs', { vuelo: vuelo });
+      })
+      .catch((error) => {
+          console.error('Error obteniendo vuelo para edición:', error);
+          res.send('Error obteniendo vuelo para edición');
+      });
+});
+
+// Ruta para manejar la actualización de un vuelo
+app.post('/actualizar-vuelo', (req, res) => {
+  const vueloId = req.body.vueloId;
+  const { origin_lat, origin_lng, destiny_lat, destiny_lng, price, origin_name, destiny_name, aero_line } = req.body;
+  
+  // Encuentra el vuelo por su ID y actualiza los campos
+  Vuelo.findByIdAndUpdate(vueloId, {
+      origin_lat: origin_lat,
+      origin_lng: origin_lng,
+      destiny_lat: destiny_lat,
+      destiny_lng: destiny_lng,
+      price: price,
+      origin_name: origin_name,
+      destiny_name: destiny_name,
+      aero_line: aero_line
+  })
+  .then(() => {
+      console.log('Vuelo actualizado');
+      res.redirect('/vuelos');
+  })
+  .catch((error) => {
+      console.error('Error actualizando vuelo:', error);
+      res.send('Error actualizando vuelo');
   });
-
-
+});
 
 
 // Iniciar el servidor en el puerto 3000
