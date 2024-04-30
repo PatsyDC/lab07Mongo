@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const multer = require('multer');
+const upload = multer();
 
 const app = express();
 
@@ -24,7 +26,7 @@ mongoose.connect('mongodb://0.0.0.0:27017/mongoLab07', {
   console.error('MongoDB connection error:', error);
 });
 
-// Definir el esquema del hotel
+//ESQUEMAS
 const hotelSchema = new mongoose.Schema({
   name: String,
   address: String,
@@ -34,6 +36,10 @@ const hotelSchema = new mongoose.Schema({
 
 const tourSchema = new mongoose.Schema({
     nameTour: String,
+    image: {
+        data: Buffer, // Almacena los datos binarios de la imagen
+        contentType: String // Tipo de contenido de la imagen (por ejemplo, "image/jpeg", "image/png", etc.)
+    }
 });
 
 // Crear el modelo Hotel
@@ -48,8 +54,7 @@ app.get('/', (req, res) => {
     res.render('index.ejs');
 });
 
-
-// Ruta para mostrar todos los hoteles
+//hOTELES 
 app.get('/hoteles', (req, res) => {
     // Encontrar todos los hoteles en la base de datos
     Hotel.find()
@@ -257,47 +262,53 @@ app.post('/actualizar-cliente', (req, res) => {
 });
 
 //TOURRR
-// Ruta para manejar la creación de un nuevo tour
-app.post('/nuevo-tour', (req, res) => {
-    // Obtener los datos del formulario
-    const { nameTour } = req.body;
-    
-    // Crear un nuevo hotel utilizando el modelo Hotel
-    const newTour = new Tour({
-      nameTour: nameTour,
-    });
-  
-    // Guardar el nuevo hotel en la base de datos
-    newTour.save()
-        .then(() => {
-            console.log('Nuevo tour creado');
-            // Redirigir al usuario a la página de hoteles después de crear el hotel
-            res.redirect('/tour');
-        })
-        .catch((error) => {
-            console.error('Error creando nuevo tour:', error);
-            // Enviar un mensaje de error al usuario si ocurre un problema al crear el hotel
-            res.send('Error creando nuevo tour');
-        });
-  });
-  
-  // Ruta para mostrar todos los tour
-  app.get('/tour', (req, res) => {
+
+app.get('/tour', (req, res) => {
     // Encontrar todos los tours en la base de datos
     Tour.find()
         .then((tours) => {
             // Renderizar la vista 'tour.ejs' y pasar los datos de los tours como una variable
-            res.render('tour.ejs', { tours: tours }); // Cambia 'tour' a 'tours'
+            res.render('tour.ejs', { tours: tours });
         })
         .catch((error) => {
             console.error('Error retrieving tour:', error);
             // Enviar un mensaje de error si ocurre un problema al recuperar los tours
             res.send('Error retrieving tour');
         });
-  });
-  
+});
+
+// Manejo de la solicitud POST para crear un nuevo tour
+app.post('/nuevo-tour', upload.single('image'), (req, res) => {
+    // Obtener los datos del formulario
+    const { nameTour } = req.body;
+    const imageData = req.file.buffer; // Los datos binarios de la imagen
+    const imageContentType = req.file.mimetype; // El tipo de contenido de la imagen
+
+    // Crear un nuevo tour utilizando el modelo Tour
+    const newTour = new Tour({
+        nameTour: nameTour,
+        image: {
+            data: imageData,
+            contentType: imageContentType
+        }
+    });
+
+    // Guardar el nuevo tour en la base de datos
+    newTour.save()
+        .then(() => {
+            console.log('Nuevo tour creado');
+            // Redirigir al usuario a la página de tours después de crear el tour
+            res.redirect('/tour');
+        })
+        .catch((error) => {
+            console.error('Error creando nuevo tour:', error);
+            // Enviar un mensaje de error al usuario si ocurre un problema al crear el tour
+            res.send('Error creando nuevo tour');
+        });
+});
+
   //EDITAR TOUR
-  
+
   app.post('/editar-tour', (req, res) => {
     const hotelId = req.body.hotelId;
     res.redirect(`/tour/editar/${tourId}`);

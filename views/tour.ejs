@@ -8,20 +8,23 @@
 </head>
 <body>
   <h2>Agregar Nuevo Tour</h2>
-  <form action="/nuevo-tour" method="POST">
-      <label for="nameTour">Nombre:</label>
-      <input type="text" id="nameTour" name="nameTour" required><br>
-      <button type="submit">Agregar Tour</button>
+  <form action="/nuevo-tour" method="POST" enctype="multipart/form-data">
+    <label for="nameTour">Nombre:</label>
+    <input type="text" id="nameTour" name="nameTour" required><br>
+    <label for="image">Imagen:</label>
+    <input type="file" id="image" name="image" required><br>
+    <button type="submit">Agregar Tour</button>
   </form>
 
+
   <div class="container">
-      <h1>Listado de Tour</h1>
-      <ul>
-        <% tours.forEach(function(tour) { %>
-            <li>
-                <strong>Nombre:</strong> <%= tour.nameTour %><br>
-            </li>
-        <% }); %>
+    <h1>Listado de Tours</h1>
+    <% tours.forEach(function(tour) { %>
+        <div>
+            <h2><%= tour.nameTour %></h2>
+            <img src="data:<%= tour.image.contentType %>;base64,<%= tour.image.data.toString('base64') %>" alt="Imagen de <%= tour.nameTour %>">
+        </div>
+    <% }); %>
     </ul>
   </div>
 
