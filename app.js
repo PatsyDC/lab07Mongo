@@ -476,6 +476,193 @@ app.post('/eliminar-reservacion', (req, res) => {
 });
 
 
+//////////////////////////////// TICKET ////////////////////////////////////////
+
+const ticketSchema = new mongoose.Schema({
+    price: Number,
+    tour: { type: mongoose.Schema.Types.ObjectId, ref: 'Tour' },
+    vuelo: { type: mongoose.Schema.Types.ObjectId, ref: 'Vuelo' },
+    cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Cliente' },
+    departure_date: Date,
+    arrival_date: Date,
+    date_purchase: Date
+})
+
+// Crear el modelo Ticket
+const Ticket = mongoose.model('Ticket', ticketSchema);
+
+// Ruta para manejar la creación de un nuevo ticket
+app.post('/nuevo-ticket', (req, res) => {
+    // Obtener los datos del formulario
+    const { tour, vuelo, cliente, departure_date, arrival_date, date_purchase, price } = req.body;
+    
+    // Crear un nuevo ticket utilizando el modelo Ticket
+    const newTicket = new Ticket({
+        tour: tour,
+        vuelo: vuelo,
+        cliente: cliente,
+        departure_date: departure_date,
+        arrival_date: arrival_date,
+        date_purchase: date_purchase,
+        price: price
+    });
+
+    // Guardar el nuevo ticket en la base de datos
+    newTicket.save()
+        .then(() => {
+            console.log('Nuevo ticket creado');
+            // Redirigir al usuario a la página de tickets después de crear el ticket
+            res.redirect('/tickets');
+        })
+        .catch((error) => {
+            console.error('Error creando nuevo ticket:', error);
+            // Enviar un mensaje de error al usuario si ocurre un problema al crear el ticket
+            res.send('Error creando nuevo ticket');
+        });
+});
+
+// Ruta para mostrar la lista de tickets
+app.get('/tickets', (req, res) => {
+    // Encontrar todos los tickets en la base de datos
+    Ticket.find()
+        .populate('tour')
+        .populate('vuelo')
+        .populate('cliente')
+        .then((tickets) => {
+            // Encontrar todos los tours en la base de datos
+            Tour.find()
+                .then((tours) => {
+                    // Encontrar todos los vuelos en la base de datos
+                    Vuelo.find()
+                        .then((vuelos) => {
+                            // Encontrar todos los clientes en la base de datos
+                            Cliente.find()
+                                .then((clientes) => {
+                                    // Renderizar la vista 'tickets.ejs' y pasar los datos de los tickets, tours, vuelos y clientes como variables
+                                    res.render('tickets.ejs', { tickets: tickets, tours: tours, vuelos: vuelos, clientes: clientes });
+                                })
+                                .catch((error) => {
+                                    console.error('Error recuperando clientes:', error);
+                                    // Enviar un mensaje de error si ocurre un problema al recuperar los clientes
+                                    res.send('Error recuperando clientes');
+                                });
+                        })
+                        .catch((error) => {
+                            console.error('Error recuperando vuelos:', error);
+                            // Enviar un mensaje de error si ocurre un problema al recuperar los vuelos
+                            res.send('Error recuperando vuelos');
+                        });
+                })
+                .catch((error) => {
+                    console.error('Error recuperando tours:', error);
+                    // Enviar un mensaje de error si ocurre un problema al recuperar los tours
+                    res.send('Error recuperando tours');
+                });
+        })
+        .catch((error) => {
+            console.error('Error recuperando tickets:', error);
+            // Enviar un mensaje de error si ocurre un problema al recuperar los tickets
+            res.send('Error recuperando tickets');
+        });
+});
+
+// Ruta para mostrar el formulario de edición de un ticket específico
+app.get('/tickets/editar/:id', (req, res) => {
+    const ticketId = req.params.id;
+    // Buscar el ticket por su ID en la base de datos
+    Ticket.findById(ticketId)
+        .then((ticket) => {
+            // Buscar los tours
+            Tour.find()
+                .then((tours) => {
+                    // Buscar los vuelos
+                    Vuelo.find()
+                        .then((vuelos) => {
+                            // Buscar los clientes
+                            Cliente.find()
+                                .then((clientes) => {
+                                    // Renderizar la vista de edición de tickets con todos los datos necesarios
+                                    res.render('ticketsEditar.ejs', { 
+                                        ticket: ticket,
+                                        tours: tours,
+                                        vuelos: vuelos,
+                                        clientes: clientes
+                                    });
+                                })
+                                .catch((error) => {
+                                    console.error('Error obteniendo clientes:', error);
+                                    res.send('Error obteniendo clientes');
+                                });
+                        })
+                        .catch((error) => {
+                            console.error('Error obteniendo vuelos:', error);
+                            res.send('Error obteniendo vuelos');
+                        });
+                })
+                .catch((error) => {
+                    console.error('Error obteniendo tours:', error);
+                    res.send('Error obteniendo tours');
+                });
+        })
+        .catch((error) => {
+            console.error('Error obteniendo ticket para edición:', error);
+            res.send('Error obteniendo ticket para edición');
+        });
+});
+
+// Ruta para manejar la actualización de un ticket
+app.post('/actualizar-ticket', (req, res) => {
+    const ticketId = req.body.ticketId;
+    const { tour, vuelo, cliente, departure_date, arrival_date, date_purchase, price } = req.body;
+    
+    // Encuentra el ticket por su ID y actualiza los campos
+    Ticket.findByIdAndUpdate(ticketId, {
+        tour: tour,
+        vuelo: vuelo,
+        cliente: cliente,
+        departure_date: departure_date,
+        arrival_date: arrival_date,
+        date_purchase: date_purchase,
+        price: price
+    })
+    .then(() => {
+        console.log('Ticket actualizado');
+        res.redirect('/tickets');
+    })
+    .catch((error) => {
+        console.error('Error actualizando ticket:', error);
+        res.send('Error actualizando ticket');
+    });
+});
+
+// Ruta para mostrar el formulario de edición de un ticket específico
+app.post('/editar-ticket', (req, res) => {
+    const ticketId = req.body.ticketId;
+    // Aquí puedes redirigir al usuario a la página de edición de tickets y pasar el ID del ticket como parámetro
+    res.redirect(`/tickets/editar/${ticketId}`);
+});
+
+// Ruta para eliminar un ticket específico
+app.post('/eliminar-ticket', (req, res) => {
+    const ticketId = req.body.ticketId;
+    // Aquí puedes implementar la lógica para eliminar el ticket de la base de datos utilizando el ID
+    Ticket.findByIdAndDelete(ticketId)
+        .then(() => {
+            console.log('Ticket eliminado');
+            res.redirect('/tickets');
+        })
+        .catch((error) => {
+            console.error('Error eliminando ticket:', error);
+            res.send('Error eliminando ticket');
+        });
+});
+
+
+
+
+
+
+
 
 //TOURRR
 
