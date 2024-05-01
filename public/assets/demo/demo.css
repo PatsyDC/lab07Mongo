@@ -124,3 +124,8 @@
 .bd-docs.dark-edition {
   background-color: #fff;
 }
+
+select.form-control option {
+  background-color: 0 0 0 0.2rem rgba(0, 123, 255, 0.5);; /* Color de fondo oscuro */
+  color: #000; /* Color de texto negro */
+}
