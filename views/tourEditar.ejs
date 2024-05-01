@@ -9,11 +9,19 @@
 <body>
     <div class="container">
         <h1>Editar Tour</h1>
-        <form action="/actualizar-tour" method="POST">
+        <form action="/actualizar-tour" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="tourId" value="<%= tour._id %>">
             <div class="mb-3">
                 <label for="nameTour" class="form-label">Nombre:</label>
                 <input type="text" class="form-control" id="nameTour" name="nameTour" value="<%= tour.nameTour %>" required>
+            </div>
+            <div class="mb-3">
+                <label for="descripcion" class="form-label">Descripción:</label>
+                <textarea class="form-control" id="descripcion" name="descripcion" rows="3"><%= tour.descripcion %></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="image" class="form-label">Imagen:</label>
+                <input type="file" class="form-control" id="image" name="image">
             </div>
             <button type="submit" class="btn btn-primary">Guardar Cambios</button>
         </form>

@@ -39,7 +39,8 @@ const tourSchema = new mongoose.Schema({
     image: {
         data: Buffer, // Almacena los datos binarios de la imagen
         contentType: String // Tipo de contenido de la imagen (por ejemplo, "image/jpeg", "image/png", etc.)
-    }
+    },
+    descripcion: String
 });
 
 const vueloSchema = new mongoose.Schema({
@@ -272,8 +273,7 @@ app.post('/editar-cliente', (req, res) => {
     const clienteId = req.body.clienteId;
     // Aquí puedes redirigir al usuario a la página de edición de clientes y pasar el ID del cliente como parámetro
     res.redirect(`/clientes/editar/${clienteId}`);
-  });
-  
+});
 
 // Ruta para eliminar un cliente específico
 app.post('/eliminar-cliente', (req, res) => {
@@ -313,6 +313,7 @@ app.post('/nuevo-tour', upload.single('image'), (req, res) => {
     const { nameTour } = req.body;
     const imageData = req.file.buffer; // Los datos binarios de la imagen
     const imageContentType = req.file.mimetype; // El tipo de contenido de la imagen
+    const {descripcion} = req.body;
 
     // Crear un nuevo tour utilizando el modelo Tour
     const newTour = new Tour({
@@ -320,7 +321,8 @@ app.post('/nuevo-tour', upload.single('image'), (req, res) => {
         image: {
             data: imageData,
             contentType: imageContentType
-        }
+        },
+        descripcion: descripcion
     });
 
     // Guardar el nuevo tour en la base de datos
@@ -340,43 +342,83 @@ app.post('/nuevo-tour', upload.single('image'), (req, res) => {
   //EDITAR TOUR
 
 app.post('/editar-tour', (req, res) => {
-    const hotelId = req.body.hotelId;
+    const tourId = req.body.tourId;
     res.redirect(`/tour/editar/${tourId}`);
 });
 
+
 app.get('/tour/editar/:id', (req, res) => {
     const tourId = req.params.id;
-    // Aquí puedes encontrar el hotel por su ID en la base de datos y pasar los datos a la vista de edición de hoteles
-    Hotel.findById(tourId)
+    // Aquí puedes encontrar el tour por su ID en la base de datos y pasar los datos a la vista de edición de tours
+    Tour.findById(tourId)
         .then((tour) => {
-            res.render('tourEditar.ejs', { tour: tour });
+            if (tour) {
+                res.render('tourEditar.ejs', { tour: tour });
+            } else {
+                res.send('Tour no encontrado');
+            }
         })
         .catch((error) => {
-            console.error('Error obteniendo hotel para edición:', error);
-            res.send('Error obteniendo hotel para edición');
+            console.error('Error obteniendo tour para edición:', error);
+            res.send('Error obteniendo tour para edición');
         });
 });
 
-app.post('/actualizar-tour', (req, res) => {
+
+app.post('/actualizar-tour', upload.single('image'), (req, res) => {
     const tourId = req.body.tourId;
-    const { name, address, rating, price } = req.body;
-    
-    // Encuentra el hotel por su ID y actualiza los campos
-    Hotel.findByIdAndUpdate(hotelId, {
-        name: name,
-        address: address,
-        rating: rating,
-        price: price
-    })
-    .then(() => {
-        console.log('Hotel actualizado');
-        res.redirect('/hoteles');
-    })
-    .catch((error) => {
-        console.error('Error actualizando hotel:', error);
-        res.send('Error actualizando hotel');
-    });
+    const { nameTour, descripcion } = req.body;
+    let imageData, imageContentType;
+
+    // Verificar si se ha proporcionado una nueva imagen
+    if (req.file) {
+        imageData = req.file.buffer;
+        imageContentType = req.file.mimetype;
+    }
+
+    // Crear un objeto con los campos que se van a actualizar
+    let updateFields = {
+        nameTour: nameTour,
+        descripcion: descripcion
+    };
+
+    // Si se proporcionó una nueva imagen, agregarla a los campos a actualizar
+    if (imageData && imageContentType) {
+        updateFields.image = {
+            data: imageData,
+            contentType: imageContentType
+        };
+    }
+
+    // Encuentra el tour por su ID y actualiza los campos
+    Tour.findByIdAndUpdate(tourId, updateFields)
+        .then(() => {
+            console.log('Tour actualizado');
+            res.redirect('/tour');
+        })
+        .catch((error) => {
+            console.error('Error actualizando Tour:', error);
+            res.send('Error actualizando Tour');
+        });
+
+    console.log(req.file);
+
 });
+
+app.post('/eliminar-tour', (req, res) => {
+    const tourId = req.body.tourId;
+    // Aquí puedes implementar la lógica para eliminar el tour de la base de datos utilizando el ID
+    Tour.findByIdAndDelete(tourId)
+        .then(() => {
+            console.log('toureliminado');
+            res.redirect('/tour');
+        })
+        .catch((error) => {
+            console.error('Error eliminando tour:', error);
+            res.send('Error eliminando tour');
+        });
+});
+
 
 //                  PARTE DE MIGUEL                                 //
 //-----------------------------------------------------------------//
