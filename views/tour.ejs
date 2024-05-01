@@ -77,7 +77,7 @@
                 <div class="col-md-4">
                   <div class="card">
                     <% if (tour.image && tour.image.data) { %>
-                      <img class="card-img-top" src="data:<%= tour.image.contentType %>;base64,<%= tour.image.data.toString('base64') %>" alt="Imagen de <%= tour.nameTour %>" style="width: auto; height: 330px;">
+                      <img class="card-img-top" src="data:<%= tour.image.contentType %>;base64,<%= tour.image.data.toString('base64') %>" alt="Imagen de <%= tour.nameTour %>" style="width: auto; height: 300px;">
                     <% } else { %>
                       <p>No image available</p>
                     <% } %>
