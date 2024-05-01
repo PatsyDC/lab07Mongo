@@ -291,6 +291,192 @@ app.post('/eliminar-cliente', (req, res) => {
 });
 
 
+//////////////////////// RESERVACIONES /////////////////////////////////////////
+
+const reservationSchema = new mongoose.Schema({
+    date_reservation: { type: Date, default: Date.now },
+    tour: { type: mongoose.Schema.Types.ObjectId, ref: 'Tour' },
+    hotel: { type: mongoose.Schema.Types.ObjectId, ref: 'Hotel' },
+    cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Cliente' },
+    date_start: { type: Date, required: true },
+    date_end: { type: Date, required: true },
+    total_days: { type: Number, required: true },
+    price: { type: Number, required: true }
+  });
+
+// Crear el modelo Reservacion
+const Reservacion = mongoose.model('Reservacion', reservationSchema);
+
+// Ruta para manejar la creación de una nueva reservación
+app.post('/nueva-reservacion', (req, res) => {
+    // Obtener los datos del formulario
+    const { tour, hotel, cliente, date_start, date_end, total_days, price } = req.body;
+    
+    // Crear una nueva reservación utilizando el modelo Reservacion
+    const newReservacion = new Reservacion({
+        tour: tour,
+        hotel: hotel,
+        cliente: cliente,
+        date_start: date_start,
+        date_end: date_end,
+        total_days: total_days,
+        price: price
+    });
+
+    // Guardar la nueva reservación en la base de datos
+    newReservacion.save()
+        .then(() => {
+            console.log('Nueva reservación creada');
+            // Redirigir al usuario a la página de reservaciones después de crear la reservación
+            res.redirect('/reservaciones');
+        })
+        .catch((error) => {
+            console.error('Error creando nueva reservación:', error);
+            // Enviar un mensaje de error al usuario si ocurre un problema al crear la reservación
+            res.send('Error creando nueva reservación');
+        });
+});
+
+// Ruta para mostrar la lista de reservaciones
+app.get('/reservaciones', (req, res) => {
+    // Encontrar todas las reservaciones en la base de datos
+    Reservacion.find()
+        .populate('tour')
+        .populate('hotel')
+        .populate('cliente')
+        .then((reservaciones) => {
+            // Encontrar todos los hoteles en la base de datos
+            Hotel.find()
+                .then((hoteles) => {
+                    // Encontrar todos los clientes en la base de datos
+                    Cliente.find()
+                        .then((clientes) => {
+                            // Encontrar todos los tours en la base de datos
+                            Tour.find()
+                                .then((tours) => {
+                                    // Renderizar la vista 'reservaciones.ejs' y pasar los datos de las reservaciones, hoteles, clientes y tours como variables
+                                    res.render('reservaciones.ejs', { reservaciones: reservaciones, hoteles: hoteles, clientes: clientes, tours: tours });
+                                })
+                                .catch((error) => {
+                                    console.error('Error recuperando tours:', error);
+                                    // Enviar un mensaje de error si ocurre un problema al recuperar los tours
+                                    res.send('Error recuperando tours');
+                                });
+                        })
+                        .catch((error) => {
+                            console.error('Error recuperando clientes:', error);
+                            // Enviar un mensaje de error si ocurre un problema al recuperar los clientes
+                            res.send('Error recuperando clientes');
+                        });
+                })
+                .catch((error) => {
+                    console.error('Error recuperando hoteles:', error);
+                    // Enviar un mensaje de error si ocurre un problema al recuperar los hoteles
+                    res.send('Error recuperando hoteles');
+                });
+        })
+        .catch((error) => {
+            console.error('Error recuperando reservaciones:', error);
+            // Enviar un mensaje de error si ocurre un problema al recuperar las reservaciones
+            res.send('Error recuperando reservaciones');
+        });
+});
+
+
+// Ruta para mostrar el formulario de edición de una reservación específica
+app.get('/reservaciones/editar/:id', (req, res) => {
+    const reservacionId = req.params.id;
+    // Buscar la reservación por su ID en la base de datos
+    Reservacion.findById(reservacionId)
+        .then((reservacion) => {
+            // Buscar los clientes
+            Cliente.find()
+                .then((clientes) => {
+                    // Buscar los hoteles
+                    Hotel.find()
+                        .then((hoteles) => {
+                            // Buscar los tours
+                            Tour.find()
+                                .then((tours) => {
+                                    // Renderizar la vista de edición de reservaciones con todos los datos necesarios
+                                    res.render('reservacionEditar.ejs', { 
+                                        reservacion: reservacion,
+                                        clientes: clientes,
+                                        hoteles: hoteles,
+                                        tours: tours
+                                    });
+                                })
+                                .catch((error) => {
+                                    console.error('Error obteniendo tours:', error);
+                                    res.send('Error obteniendo tours');
+                                });
+                        })
+                        .catch((error) => {
+                            console.error('Error obteniendo hoteles:', error);
+                            res.send('Error obteniendo hoteles');
+                        });
+                })
+                .catch((error) => {
+                    console.error('Error obteniendo clientes:', error);
+                    res.send('Error obteniendo clientes');
+                });
+        })
+        .catch((error) => {
+            console.error('Error obteniendo reservación para edición:', error);
+            res.send('Error obteniendo reservación para edición');
+        });
+});
+
+
+// Ruta para manejar la actualización de una reservación
+app.post('/actualizar-reservacion', (req, res) => {
+    const reservacionId = req.body.reservacionId;
+    const { tour, hotel, cliente, date_start, date_end, total_days, price } = req.body;
+    
+    // Encuentra la reservación por su ID y actualiza los campos
+    Reservacion.findByIdAndUpdate(reservacionId, {
+        tour: tour,
+        hotel: hotel,
+        cliente: cliente,
+        date_start: date_start,
+        date_end: date_end,
+        total_days: total_days,
+        price: price
+    })
+    .then(() => {
+        console.log('Reservación actualizada');
+        res.redirect('/reservaciones');
+    })
+    .catch((error) => {
+        console.error('Error actualizando reservación:', error);
+        res.send('Error actualizando reservación');
+    });
+});
+
+// Ruta para mostrar el formulario de edición de una reservación específica
+app.post('/editar-reservacion', (req, res) => {
+    const reservacionId = req.body.reservacionId;
+    // Aquí puedes redirigir al usuario a la página de edición de reservaciones y pasar el ID de la reservación como parámetro
+    res.redirect(`/reservaciones/editar/${reservacionId}`);
+});
+
+// Ruta para eliminar una reservación específica
+app.post('/eliminar-reservacion', (req, res) => {
+    const reservacionId = req.body.reservacionId;
+    // Aquí puedes implementar la lógica para eliminar la reservación de la base de datos utilizando el ID
+    Reservacion.findByIdAndDelete(reservacionId)
+        .then(() => {
+            console.log('Reservación eliminada');
+            res.redirect('/reservaciones');
+        })
+        .catch((error) => {
+            console.error('Error eliminando reservación:', error);
+            res.send('Error eliminando reservación');
+        });
+});
+
+
+
 //TOURRR
 
 app.get('/tour', (req, res) => {
